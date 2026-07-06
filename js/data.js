@@ -73,18 +73,12 @@ const Data = (() => {
         get('actuaciones', `${base}/${CONFIG.LAYERS.actuaciones}`, true),
         get('indicadores', `${base}/${CONFIG.LAYERS.indicadores}`, false),
       ]);
-      // Join indicadores into actuaciones by CLAVE_ACT
+      // Join indicadores into actuaciones by CLAVE_ACT — keep only the most recent year's record
       const indMap = {};
       indicadores.forEach(f => {
         const key = f.attributes.CLAVE_ACT;
-        if (!indMap[key]) indMap[key] = f.attributes;
-        else {
-          // Accumulate numeric fields
-          Object.keys(f.attributes).forEach(k => {
-            if (typeof f.attributes[k] === 'number') {
-              indMap[key][k] = (indMap[key][k] || 0) + f.attributes[k];
-            }
-          });
+        if (!indMap[key] || (f.attributes.AÑO ?? 0) > (indMap[key].AÑO ?? 0)) {
+          indMap[key] = f.attributes;
         }
       });
       _rawIndicadores = indicadores;
