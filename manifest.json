@@ -1,0 +1,14 @@
+{
+  "name": "ENRR Dashboard",
+  "short_name": "ENRR",
+  "description": "Estrategia Nacional de Restauración de Ríos - Visor de actuaciones",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "orientation": "any",
+  "icons": [
+    { "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/1f30a.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/192/1f30a.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

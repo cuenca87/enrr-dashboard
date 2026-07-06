@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1e3a8a">
+  <title>ENRR · Estrategia Nacional de Restauración de Ríos</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div id="loading-msg">Conectando con el servicio ENRR…</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden"></div>
+
+<!-- ── HEADER ─────────────────────────────────── -->
+<header id="app-header">
+  <h1><span>🌊</span> ENRR Dashboard</h1>
+  <button class="tab-btn active" data-tab="rest">Restauración Fluvial</button>
+  <button class="tab-btn" data-tab="cons">Conservación</button>
+  <button class="tab-btn" data-tab="ind">📊 Indicadores</button>
+  <button id="btn-filters" title="Mostrar/ocultar filtros">⚙ Filtros</button>
+  <button id="btn-reload" title="Recargar datos">↺</button>
+</header>
+
+<!-- ── FILTER PANEL ───────────────────────────── -->
+<div id="filter-panel">
+  <!-- Restauración + Indicadores filters (comparten los mismos campos) -->
+  <div id="filters-rest" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="rf-dh"><option value="">Demarcación H.</option></select>
+    <select id="rf-estado"><option value="">Estado ejecución</option></select>
+    <select id="rf-ccaa"><option value="">CCAA</option></select>
+    <select id="rf-provincia"><option value="">Provincia</option></select>
+    <select id="rf-ano"><option value="">Año inicio</option></select>
+  </div>
+  <!-- Conservación filters -->
+  <div id="filters-cons" style="display:none;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="cf-dh"><option value="">Demarcación H.</option></select>
+    <select id="cf-ano"><option value="">Año</option></select>
+    <select id="cf-ccaa"><option value="">CCAA</option></select>
+    <select id="cf-provincia"><option value="">Provincia</option></select>
+  </div>
+  <button id="btn-clear-filters">✕ Limpiar</button>
+</div>
+
+<!-- ── APP BODY ───────────────────────────────── -->
+<div id="app-body">
+
+  <!-- ══════════════════════════════════════════
+       TAB 1: RESTAURACIÓN FLUVIAL
+  ══════════════════════════════════════════════ -->
+  <section id="tab-rest" class="tab-content active">
+
+    <div id="map-badge-rest" class="map-badge">Cargando…</div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon">📌</div>
+        <div class="kpi-val" id="kpi-nact">–</div>
+        <div class="kpi-lbl">Actuaciones</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📏</div>
+        <div class="kpi-val" id="kpi-long">–</div>
+        <div class="kpi-lbl">Long. total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🏞️</div>
+        <div class="kpi-val" id="kpi-kmrest">–</div>
+        <div class="kpi-lbl">Río restaurado</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🔗</div>
+        <div class="kpi-val" id="kpi-kmcon">–</div>
+        <div class="kpi-lbl">Río conectado</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🚧</div>
+        <div class="kpi-val" id="kpi-barr">–</div>
+        <div class="kpi-lbl">Barreras elim.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-val" id="kpi-hab">–</div>
+        <div class="kpi-lbl">Hab. protegidos</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💶</div>
+        <div class="kpi-val" id="kpi-presup">–</div>
+        <div class="kpi-lbl">Presupuesto</div>
+      </div>
+    </div>
+
+    <div class="main-panel">
+      <div class="panel-left" style="display:flex;flex-direction:column;gap:8px">
+        <div class="map-card">
+          <div class="map-header">
+            <span>🗺 Actuaciones de restauración fluvial</span>
+            <div class="map-legend">
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#1D4ED8"></div>Ejecutado</div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#15803D"></div>En ejecución</div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#D97706"></div>En tramitación</div>
+              <div class="map-legend-item"><div class="map-legend-dot" style="background:#DC2626"></div>Planificado</div>
+            </div>
+          </div>
+          <div id="map-rest" class="leaflet-map"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <button class="chart-tab active" data-panel="chart-panel-pie">Por estado</button>
+            <button class="chart-tab" data-panel="chart-panel-dh">Por demarcación</button>
+            <button class="chart-tab" data-panel="chart-panel-presup">Presupuesto</button>
+          </div>
+          <div id="chart-panel-pie" class="chart-panel active"><canvas id="chart-pie-rest"></canvas></div>
+          <div id="chart-panel-dh" class="chart-panel" style="height:340px"><canvas id="chart-dh-rest"></canvas></div>
+          <div id="chart-panel-presup" class="chart-panel" style="height:340px"><canvas id="chart-presup-rest"></canvas></div>
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">📋 Listado de actuaciones</span>
+            <input type="search" id="search-rest" class="table-search" placeholder="🔍 Buscar…">
+          </div>
+          <div class="results-count" id="rest-count"></div>
+          <div class="table-wrap"><table id="table-rest-body"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       TAB 2: CONSERVACIÓN DE CAUCES
+  ══════════════════════════════════════════════ -->
+  <section id="tab-cons" class="tab-content">
+
+    <div id="map-badge-cons" class="map-badge">Cargando…</div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon">📌</div>
+        <div class="kpi-val" id="kpi-cons-nact">–</div>
+        <div class="kpi-lbl">Actuaciones</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📏</div>
+        <div class="kpi-val" id="kpi-cons-long">–</div>
+        <div class="kpi-lbl">Longitud total</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💶</div>
+        <div class="kpi-val" id="kpi-cons-presup">–</div>
+        <div class="kpi-lbl">Presupuesto</div>
+      </div>
+    </div>
+
+    <div class="main-panel">
+      <div class="panel-left" style="display:flex;flex-direction:column;gap:8px">
+        <div class="map-card">
+          <div class="map-header"><span>🗺 Actuaciones de conservación de cauces</span></div>
+          <div id="map-cons" class="leaflet-map"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <button class="chart-tab active" data-panel="chart-panel-cons-tipo">Por tipo de intervención</button>
+          </div>
+          <div id="chart-panel-cons-tipo" class="chart-panel active" style="height:260px">
+            <canvas id="chart-cons-tipo"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">📋 Listado de actuaciones</span>
+            <input type="search" id="search-cons" class="table-search" placeholder="🔍 Buscar…">
+          </div>
+          <div class="results-count" id="cons-count"></div>
+          <div class="table-wrap"><table id="table-cons-body"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       TAB 3: INDICADORES
+  ══════════════════════════════════════════════ -->
+  <section id="tab-ind" class="tab-content">
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon">📌</div>
+        <div class="kpi-val" id="kpi-ind-nact">–</div>
+        <div class="kpi-lbl">Actuaciones</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🏞️</div>
+        <div class="kpi-val" id="kpi-ind-kmrest">–</div>
+        <div class="kpi-lbl">Río restaurado</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🔗</div>
+        <div class="kpi-val" id="kpi-ind-kmcon">–</div>
+        <div class="kpi-lbl">Río conectado</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🚧</div>
+        <div class="kpi-val" id="kpi-ind-barr">–</div>
+        <div class="kpi-lbl">Barreras elim.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🌿</div>
+        <div class="kpi-val" id="kpi-ind-veg">–</div>
+        <div class="kpi-lbl">Veg. ribereña</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-val" id="kpi-ind-hab">–</div>
+        <div class="kpi-lbl">Hab. protegidos</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💶</div>
+        <div class="kpi-val" id="kpi-ind-presup">–</div>
+        <div class="kpi-lbl">Presupuesto</div>
+      </div>
+    </div>
+
+    <div class="ind-grid">
+
+      <!-- Actuaciones por año y estado -->
+      <div class="chart-card full">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-panel="ind-panel-year">Actuaciones por año y estado</button>
+        </div>
+        <div id="ind-panel-year" class="chart-panel active" style="height:240px">
+          <canvas id="chart-ind-year"></canvas>
+        </div>
+      </div>
+
+      <!-- km ríos por año -->
+      <div class="chart-card">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-panel="ind-panel-rios">km ríos restaurados y conectados</button>
+        </div>
+        <div id="ind-panel-rios" class="chart-panel active">
+          <canvas id="chart-ind-rios"></canvas>
+        </div>
+      </div>
+
+      <!-- Habitantes protegidos por año -->
+      <div class="chart-card">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-panel="ind-panel-hab">Habitantes protegidos frente a inundaciones</button>
+        </div>
+        <div id="ind-panel-hab" class="chart-panel active">
+          <canvas id="chart-ind-hab"></canvas>
+        </div>
+      </div>
+
+      <!-- Barreras transversales -->
+      <div class="chart-card">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-panel="ind-panel-barr">Barreras transversales</button>
+        </div>
+        <div id="ind-panel-barr" class="chart-panel active">
+          <canvas id="chart-ind-barr"></canvas>
+        </div>
+      </div>
+
+      <!-- Vegetación ribereña y EEI -->
+      <div class="chart-card">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-panel="ind-panel-veg">Vegetación ribereña y especies invasoras</button>
+        </div>
+        <div id="ind-panel-veg" class="chart-panel active">
+          <canvas id="chart-ind-veg"></canvas>
+        </div>
+      </div>
+
+    </div><!-- /ind-grid -->
+  </section><!-- /tab-ind -->
+
+</div><!-- /app-body -->
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
