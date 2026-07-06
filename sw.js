@@ -1,4 +1,4 @@
-const CACHE_NAME = 'enrr-v1';
+const CACHE_NAME = 'enrr-v3';
 const ASSETS = ['./', './index.html', './css/style.css', './js/config.js', './js/data.js', './js/app.js'];
 
 self.addEventListener('install', e => {

@@ -28,12 +28,18 @@
 
 <!-- ── HEADER ─────────────────────────────────── -->
 <header id="app-header">
-  <h1><span>🌊</span> ENRR Dashboard</h1>
-  <button class="tab-btn active" data-tab="rest">Restauración Fluvial</button>
-  <button class="tab-btn" data-tab="cons">Conservación</button>
-  <button class="tab-btn" data-tab="ind">📊 Indicadores</button>
-  <button id="btn-filters" title="Mostrar/ocultar filtros">⚙ Filtros</button>
-  <button id="btn-reload" title="Recargar datos">↺</button>
+  <div id="header-row1">
+    <h1><span>🌊</span> ENRR Dashboard</h1>
+  </div>
+  <div id="header-row2">
+    <div id="header-tabs">
+      <button class="tab-btn active" data-tab="rest">Restauración Fluvial</button>
+      <button class="tab-btn" data-tab="cons">Conservación</button>
+      <button class="tab-btn" data-tab="ind">📊 Indicadores</button>
+    </div>
+    <button id="btn-filters" title="Mostrar/ocultar filtros">⚙ Filtros</button>
+    <button id="btn-reload" title="Recargar datos">↺</button>
+  </div>
 </header>
 
 <!-- ── FILTER PANEL ───────────────────────────── -->

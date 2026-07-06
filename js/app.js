@@ -238,7 +238,10 @@ function applyConsFilters() {
 /* ── KPIs ────────────────────────────────────── */
 function updateRestKPIs(features) {
   const props = features.map(f => f.properties);
-  const inds  = features.filter(f => f._ind).map(f => f._ind);
+  // Los KPIs de indicadores solo cuentan actuaciones Ejecutadas (igual que el dashboard original)
+  const inds = features
+    .filter(f => f._ind && f.properties.EST_EJEC_ACT === 'Ejecutado')
+    .map(f => f._ind);
   document.getElementById('kpi-nact').textContent   = fmt.num(features.length);
   document.getElementById('kpi-long').textContent   = fmt.km(sum(props, 'LONG_ACT'));
   document.getElementById('kpi-presup').textContent = fmt.eur(sum(props, 'PRESUP_ACT'));
@@ -616,9 +619,13 @@ function aggregateByYear(records) {
 }
 
 function updateIndKPIs(records) {
-  const inds = records.map(r => r.attributes);
-  const claves = new Set(State.restFiltered.map(f => f.properties.CLAVE_ACT));
-  document.getElementById('kpi-ind-nact').textContent   = fmt.num(claves.size);
+  const ejecutadoClaves = new Set(
+    State.restFiltered
+      .filter(f => f.properties.EST_EJEC_ACT === 'Ejecutado')
+      .map(f => f.properties.CLAVE_ACT)
+  );
+  const inds = records.filter(r => ejecutadoClaves.has(r.attributes.CLAVE_ACT)).map(r => r.attributes);
+  document.getElementById('kpi-ind-nact').textContent   = fmt.num(State.restFiltered.length);
   document.getElementById('kpi-ind-kmrest').textContent = fmt.km(sum(inds, 'KM_RIO_REST'));
   document.getElementById('kpi-ind-kmcon').textContent  = fmt.km(sum(inds, 'KM_RIO_CONEC'));
   document.getElementById('kpi-ind-barr').textContent   = fmt.num(sum(inds, 'ELIM_BARR'));

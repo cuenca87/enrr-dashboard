@@ -8,7 +8,7 @@
   --text-muted: #64748b;
   --radius: 8px;
   --shadow: 0 1px 4px rgba(0,0,0,.1);
-  --header-h: 56px;
+  --header-h: 86px;   /* móvil: 2 filas */
   --filters-h: 48px;
 
   --c-ejecutado:    #1D4ED8;
@@ -37,24 +37,53 @@ body {
   position: sticky; top: 0; z-index: 1000;
   background: var(--primary-dark);
   color: #fff;
-  height: var(--header-h);
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 12px;
+  display: flex; flex-direction: column;
   box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
-#app-header h1 { font-size: 15px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Móvil fila 1: solo el título */
+#header-row1 {
+  display: flex; align-items: center;
+  padding: 8px 12px 2px;
+}
+
+/* Móvil fila 2: tabs (scrollables) + filtros + reload */
+#header-row2 {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 6px 6px;
+  min-width: 0;
+}
+
+#header-tabs {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 2px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#header-tabs::-webkit-scrollbar { display: none; }
+
+#app-header h1 { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #app-header h1 span { font-size: 18px; }
 
 .tab-btn {
   background: transparent; border: none; color: rgba(255,255,255,.7);
-  font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer;
-  border-radius: 6px; white-space: nowrap; transition: all .2s;
+  font-size: 13px; font-weight: 600; padding: 5px 11px; cursor: pointer;
+  border-radius: 6px; white-space: nowrap; transition: all .2s; flex-shrink: 0;
 }
 .tab-btn.active { background: rgba(255,255,255,.2); color: #fff; }
 .tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,.1); }
 
-#btn-filters { background: rgba(255,255,255,.15); border: none; color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
-#btn-reload  { background: none; border: none; color: rgba(255,255,255,.7); cursor: pointer; font-size: 18px; padding: 4px 8px; }
+#btn-filters { background: rgba(255,255,255,.15); border: none; color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+#btn-reload  { background: none; border: none; color: rgba(255,255,255,.7); cursor: pointer; font-size: 18px; padding: 4px 6px; flex-shrink: 0; }
+
+/* Desktop ≥720px: una sola fila */
+@media (min-width: 720px) {
+  :root { --header-h: 56px; }
+  #app-header { flex-direction: row; align-items: center; height: 56px; padding: 0 12px; gap: 8px; }
+  #header-row1 { padding: 0; flex: 0 0 auto; }
+  #header-row2 { padding: 0; flex: 1; }
+  #header-tabs { overflow-x: visible; }
+}
 
 /* ── FILTER PANEL ────────────────────────────── */
 #filter-panel {
